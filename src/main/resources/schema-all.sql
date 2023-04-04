@@ -1,7 +1,14 @@
-DROP TABLE people IF EXISTS;
+DROP TABLE IF EXISTS people;
 
-CREATE TABLE people  (
-    person_id BIGINT IDENTITY NOT NULL PRIMARY KEY,
+--create an h2 table
+
+CREATE TABLE people
+(
+
+    person_id  INT         NOT NULL AUTO_INCREMENT,
+
     first_name VARCHAR(20),
-    last_name VARCHAR(20)
+    last_name  VARCHAR(20) NOT NULL,
+
+    PRIMARY KEY (person_id)
 );
