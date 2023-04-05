@@ -16,25 +16,26 @@ import org.springframework.batch.item.ItemProcessor;
  * <p>
  */
 public class PersonItemProcessor implements ItemProcessor<Person, Person> {
-    private static final Logger log = LoggerFactory.getLogger(PersonItemProcessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PersonItemProcessor.class);
 
     /**
      * This method processes a Person object by capitalizing the first and last names and returning a new Person object.
      *
      * @param person the input Person object
      * @return the transformed Person object with capitalized first and last names
-     * @throws Exception if any error occurs during processing
      */
     @Override
-    public Person process(final Person person) throws
-                                               Exception {
+    public Person process(final Person person) {
+        LOG.info("Processing person: %s".formatted(person));
+
         final String firstName = person.firstName().toUpperCase();
         final String lastName = person.lastName().toUpperCase();
 
         final Person transformedPerson = new Person(firstName,
                                                     lastName);
 
-        log.info("Converting (" + person + ") into (" + transformedPerson + ")");
+        LOG.info("Converting (%s) into (%s)".formatted(person,
+                                                       transformedPerson));
 
         return transformedPerson;
     }

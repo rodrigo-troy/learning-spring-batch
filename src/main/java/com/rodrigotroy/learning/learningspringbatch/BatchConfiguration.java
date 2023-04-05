@@ -1,6 +1,8 @@
 package com.rodrigotroy.learning.learningspringbatch;
 
 import com.rodrigotroy.learning.learningspringbatch.domain.Person;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -19,8 +21,10 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
+
 @Configuration
 public class BatchConfiguration {
+    private static final Logger LOG = LoggerFactory.getLogger(BatchConfiguration.class);
 
     /**
      * This method defines a bean for the FlatFileItemReader, which reads input data from a CSV file and maps it to a Person object.
@@ -29,7 +33,8 @@ public class BatchConfiguration {
      */
     // tag::readerwriterprocessor[]
     @Bean
-    public FlatFileItemReader<Person> reader() {
+    public FlatFileItemReader<Person> getPersonFlatFileItemReader() {
+        LOG.info("Creating a new instance of FlatFileItemReader<Person>");
         return new FlatFileItemReaderBuilder<Person>().name("personItemReader")
                                                       .resource(new ClassPathResource("sample-data.csv"))
                                                       .delimited()
@@ -45,7 +50,8 @@ public class BatchConfiguration {
      * @return A new instance of PersonItemProcessor
      */
     @Bean
-    public PersonItemProcessor processor() {
+    public PersonItemProcessor getPersonItemProcessor() {
+        LOG.info("Creating a new instance of PersonItemProcessor");
         return new PersonItemProcessor();
     }
 
@@ -57,6 +63,7 @@ public class BatchConfiguration {
      */
     @Bean
     public JdbcBatchItemWriter<Person> writer(DataSource dataSource) {
+        LOG.info("Creating a new instance of JdbcBatchItemWriter<Person>");
         return new JdbcBatchItemWriterBuilder<Person>()
                 .itemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>())
                 .sql("INSERT INTO people (first_name, last_name) VALUES (:firstName, :lastName)")
@@ -68,7 +75,7 @@ public class BatchConfiguration {
     // tag::jobstep[]
 
     /**
-     * This method defines the job, and the second one defines a single step. Jobs are built from steps, where each step can involve a reader, a processor, and a writer.
+     * This method defines the job. Jobs are built from steps, where each step can involve a reader, a processor, and a writer.
      * In this job definition, you need an incrementer, because jobs use a database to maintain execution state. You then list each step, (though this job has only one step). The job ends, and the Java API produces a perfectly configured job.
      *
      * @param jobRepository
@@ -80,6 +87,7 @@ public class BatchConfiguration {
     public Job importUserJob(JobRepository jobRepository,
                              JobCompletionNotificationListener jobCompletionNotificationListener,
                              Step step1) {
+        LOG.info("Creating a new instance of Job");
         return new JobBuilder("importUserJob",
                               jobRepository)
                 .incrementer(new RunIdIncrementer())
@@ -102,12 +110,13 @@ public class BatchConfiguration {
     public Step step1(JobRepository jobRepository,
                       PlatformTransactionManager transactionManager,
                       JdbcBatchItemWriter<Person> writer) {
+        LOG.info("Creating a new instance of Step");
         return new StepBuilder("step1",
                                jobRepository)
                 .<Person, Person>chunk(10,
                                        transactionManager)
-                .reader(reader())
-                .processor(processor())
+                .reader(getPersonFlatFileItemReader())
+                .processor(getPersonItemProcessor())
                 .writer(writer)
                 .build();
     }
